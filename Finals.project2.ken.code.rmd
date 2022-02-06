@@ -1,0 +1,380 @@
+---
+title: "Final Project;STAT 601; Q2"
+author: "Kenneth Annan"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=F,warning=F,echo=F,fig_height=10,fig_width=7,cache = F)
+```
+
+
+**Question 2**
+
+**Introduction**
+
+This study seeks to investigate the evidential value of microspectrophotometry measurements made for pen inks) in Martyna et al. (2013).Our interest is in the three of the univariate LR’s (corresponding to the “X”, “Y”, and “Z” measures of color) that Dr. Saunders constructed and their relationship to an omnibus LR.That is, the objective is to describe and characterize the relationship between the four forensic likelihood ratios, with the ultimate aim of predicting the omnibus Likelihood ratio in terms of the three univariate likelihood ratios.The basic goal is to investigate 1) whether or not there is a relationship between the marginal LR’s (i.e. LLR.x, LLR.y, and LLR.z) and the Omnibus LR (i.e. Omni.LLR.int) 2) characterize the relationship if any and draw conclusions from it.
+
+
+**Data and methodology**
+
+The study employs the dat.LLR.int.csv dataset that Dr.Saunders constructed. The data set contains 6 variables and 820 observations.However,the present study was initiated by a data collection consisting of four forensic likelihood ratios (Omni.LLR.int, LLR.x, LLR.y, LLR.z) and Type( within-source comparison(wi) and between-source comparison(bw)).The within-source comparison (wi)consists of of just 40 observations and the rest of the 780 observations are made up of between-source comparison (bw).In order to explore the dataset to know what model will best fit the data,I used the ggplot,the boxplot  to check.I also used the aggregate function in R to find the means of the wi and bw comparison.The boxplot shows that in  all the four measurements,the within-source comparison(wi) has higher value than between-source comparison(bw).This is also shown in the means of the four variables shown in Table 2.Also,the within-source comparison(wi) as less skewed as compared to the between-source comparison(bw) for all the four LLR measurements.The above discussion give an indication of dividing the dataset for the analysis. Thus, I analyzed these effects separately for the within-source comparison(wi) and the between-source comparison(bw).
+Also, the correlation plot of the variables in Figure 2a and Figure 2b show that all the independent variables (LLR.x, LLR.y, and LLR.z) have a non-linear relationship or pattern with the Omnibus LR. From the ongoing discussion, I posit that aside the non-relationship between the variables, a simple linear model cannot be sufficient to characterize the relationship between the dependent variable and the three marginals. Thus, to better characterize this relationship, I used the generalized additive models (gam) model to measure this non-linear relationship. I used the gam. checker command that I learned in chapter 6 of this course to further check my results.
+
+
+
+
+**Discussion of results**
+
+   *within group comparison*
+   
+The summary result of the gam model for the within group comparison shows that all the three marginal LR’s (i.e. LLR.x, LLR.y, and LLR.z) variables are statistically significant at the predefined 5% alpha level since their p-values are less than 0.05.
+The plot of the variables also shows that the marginal LR’s (i.e. LLR.x, LLR.y, and LLR.z) and the Omnibus LR (i.e. Omni.LLR.int) have a non-linear relationship. Thus, there exist a no linear relationship between the Omnibus and the three marginal LR’s (ie, a polynomial pattern). Also, the variable “LLR.x” as seen from the plot and by the degrees of freedom nearing 8, can be explained by a 8th order smooth function, “LLR.y” by approximately 8th order smooth function, and “LLR.z” by a 9th order smooth function-see Table 2.
+The moderate GCV, AIC and degrees of freedom for the model are 0.0000018,-447.0405324 and 25.5012195 respectively-See Table 3.The total degree of freedom (25.5012195) is approximately 26 to the nearest whole number indicates that we need to impose smoothing terms as well. Thus is to ensure that the degrees of freedom are equal to the number of smoothing terms to ensure an optimum model.However,the AIC of -447.0405324 is a bit low implying that there is no need to smooth the the model.
+The summary of the gam.check() function also shows that none of the marginal LR’s (i.e. LLR.y, and LLR.z) are significant at the at the predefined 5% alpha level.The diagnostics plot of the gam.check() function show that all the independent variables should be smoothed because all of the predictors show a non linear effect.Also, the residual plots show that residuals are approximately normally distributed albeit slightly right-skewed.Lastly, the choice of k is appropriate for the within group comparison because they are not strictly low.Thus, the smoothing is order 9 for all the independent variables.
+
+
+
+
+
+
+   *between group comparison*
+   
+The summary result of the gam model for the between-source comparison shows that all the three marginal LR’s (i.e. LLR.x, LLR.y, and LLR.z) variables are statistically significant at the predefined 5% alpha level since their p-values are less than 0.05.
+The plot of the variables also shows that the marginal LR’s (i.e. LLR.x, LLR.y, and LLR.z) and the Omnibus LR (i.e. Omni.LLR.int) have a non-linear relationship. Thus, there exist a no linear relationship between the Omnibus and the three marginal LR’s (ie, a polynomial pattern). Also, the variable “LLR.x” as seen from the plot and by the degrees of freedom nearing 9, can be explained by a 9th order smooth function, “LLR.y” by approximately 8th order smooth function, and “LLR.z” by  8th order smooth function.
+The moderate GCV, AIC and degrees of freedom for the model are 0.0373758, -349.0346052 and 25.5817165 respectively-See Table 4. The total degree of freedom (25.5817165) is approximately 26 to the nearest whole number indicates that we need to impose smoothing terms as well. Thus is to ensure that the degrees of freedom are equal to the number of smoothing terms to ensure an optimum model.However,the AIC of -349.0346052 is a bit low implying that there is no need to smooth the the model.
+The summary of the gam.check() function also shows that two of the marginal LR’s (i.e. LLR.y, and LLR.z) are significant at the at the predefined 5% alpha level while the variable LLR.x is not significant. The diagnostics plot of the gam.check() function show that all the independent variables should be smoothed because all of the predictors show a non linear effect.Also, the residual plots show that residuals are approximately normally distributed albeit slightly left-skewed.Lastly, the choice of k is appropriate for the variable because they are not strictly low.
+
+
+
+
+
+
+**Conclusion** 
+
+Both the between-source comparison and the within-source comparison of the gam model indicate that all the three marginal LR’s (i.e. LLR.x, LLR.y, and LLR.z) variables are statistically significant in predicting the the Omnibus LR (i.e. Omni.LLR.int).Also, all the three marginal LR’s (i.e. LLR.x, LLR.y, and LLR.z) have a non-linear relationship with the Omnibus LR (i.e. Omni.LLR.int) for both comparison.Lastly,the study sheds light that we can apply the gam model estimate the omnibus LLR value given the values of the three marginal LLR’s (i.e. LLR.x, LLR.y, and LLR.z).Also, the gam model fit the data well for between-source comparison and the within-source comparison as shown in Table 5.   
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+library(readr)
+#dat_LLR_int <- read_csv("C:/Users/toshiba/Desktop/STAT601/Final Project/dat.LLR.int.csv")
+
+
+
+
+dat_LLR_int <- read_csv('G:/My Drive/STAT601/Final Project/dat.LLR.int.csv')
+
+kk=dat_LLR_int[,-(1:2)]
+newr=kk[,-2]#data without type
+
+
+#kk$c=as.factor(kk$Type) ## type as a factor
+m=data.frame(subset(kk,Type=="wi"))## subset data by within-source comparison
+kkl=nrow(m)
+m1=data.frame(subset(kk,Type=="bw")) ## subset data by between-source comparison
+k=nrow(m1)
+
+
+
+```
+
+
+
+
+
+
+```{r}
+layout(matrix(1:4, nrow = 2))
+boxplot(kk$Omni.LLR.int ~ kk$Type, main =  "Omni.LLR versus Type",xlab = "Type",ylab="Omni.LLR",col="skyblue")
+boxplot(kk$LLR.x ~ kk$Type, main = 'LLR.x versus Type',xlab = "Type",ylab="LLR.x",col="skyblue")
+boxplot(kk$LLR.y ~ kk$Type, main = 'LLR.y versus Type',xlab = "Type",ylab="LLR.y",col="skyblue")
+boxplot(kk$LLR.z ~ kk$Type, main = 'LLR.z versus Type',xlab ="Type",ylab="LLR.z" ,col="skyblue")
+
+
+## finding mean by type
+c=data.frame(aggregate(kk,list(kk$Type),FUN=mean))
+c1=c[,-6]
+A1=c1[,-3]
+knitr::kable(A1,caption = "Table 1:Means of the four  variables by type ")
+
+```
+
+
+
+
+
+
+
+
+```{r}
+
+
+
+
+#checking for correlation amd the distribution of the plot
+library(ggplot2)
+library(GGally)
+ggpairs(m[,-2],title = "Figure 2a:correlation plot of within-source comparison")
+ggpairs(m1[,-2],title = "Figure 2b:correlation plot of between-source comparison")
+
+```
+
+
+
+
+
+```{r}
+
+ 
+ library("HSAUR3")
+library("mgcv")
+library("GGally")
+library("mboost")
+library("rpart")
+library("wordcloud")
+
+## gam model for the within-source comparison
+Omni_gam1 <- gam(Omni.LLR.int ~ s(LLR.x) + s(LLR.y) + s(LLR.z) , 
+                  data = m)
+AIC( Omni_gam1)
+l=summary(Omni_gam1)## summary of the model
+l$r.sq
+nb=l$s.table
+knitr::kable(nb,caption = "Table 2:summary for within-source comparison ")
+par(mfrow=c(1,3))   #plot of the model
+plot(Omni_gam1)
+
+
+Omni_gam1$gcv.ubre
+AIC(Omni_gam1)
+#summary(bodyfat_gam)$r.sq
+sum(summary(Omni_gam1)$edf)
+
+
+#qq.gam(bodyfat_gam)
+par(mfrow=c(2,4))
+gam.check(Omni_gam1)
+ #mtext("Figure 3:Histogram of the four  variables", outer=TRUE,  cex=1, line=-0.88)
+ 
+a=data.frame(rbind(Omni_gam1$gcv.ubre,AIC(Omni_gam1),l$r.sq))
+aa=data.frame(rbind(a,sum(summary(Omni_gam1)$edf)))
+aaa=row.names(aa) <-c('GCV','AIC',"R-squared",'DF')
+names(aa) <- ("Table 1:Results for the GCV,AIC,R-squared,DF")
+knitr::kable(aa)
+
+
+
+```
+
+
+
+
+
+
+```{r}
+ library("HSAUR3")
+library("mgcv")
+library("GGally")
+library("mboost")
+library("rpart")
+library("wordcloud")
+
+## gam model  between-source comparison
+Omni_gam2 <- gam(Omni.LLR.int ~ s(LLR.x) + s(LLR.y) + s(LLR.z) , 
+                  data = m1)
+AIC( Omni_gam2)
+l1=summary(Omni_gam2)## summary of the model
+l1$r.sq
+mb=l1$s.table
+
+knitr::kable(mb,caption = "Table 3:summary for between-source comparison ")
+par(mfrow=c(1,3))   #plot of the model
+plot(Omni_gam2)
+
+
+Omni_gam2$gcv.ubre
+AIC(Omni_gam2)
+#summary(bodyfat_gam)$r.sq
+sum(summary(Omni_gam2)$edf)
+
+#qq.gam(bodyfat_gam)
+par(mfrow=c(2,4))
+gam.check(Omni_gam2)
+ #mtext("Figure 3:Histogram of the four  variables", outer=TRUE,  cex=1, line=-0.88)
+ 
+a1=data.frame(rbind(Omni_gam2$gcv.ubre,AIC(Omni_gam2),l1$r.sq))
+aa1=data.frame(rbind(a1,sum(summary(Omni_gam2)$edf)))
+aaa1=row.names(aa1) <-c('GCV','AIC',"R-squared",'DF')
+names(aa1) <- ("Table 2:Results for the GCV,AIC,DF")
+knitr::kable(aa1)
+l1$r.sq
+
+```
+
+
+
+
+```{r}
+
+
+km=data.frame(aa,aa1)
+names(km)=c("within comparison","between comparison")
+
+knitr::kable(km,caption = "Table 5:within comparison between comparison summary")
+```
+
+
+
+
+
+
+
+
+
+
+
+**References**
+
+1. Zadora, G., Martyna, A., Ramos, D., & Aitken, C. (2013). Statistical analysis in forensic science: evidential value of multivariate physicochemical data. John Wiley & Sons.
+
+2. Hothorn, T., Everitt, B. S., Data II, C. A. L., Scaling, C. M., & Partitioning, C. R. (2017). HSAUR3: A Handbook of Statistical Analyses Using R.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+
+    
+    
+
+
+
+    
+
+  
+
+   
+    
+
+
+    
+    
+
+    
+
+
+    
+
+    
+   
+
+     
+    
+
+   
+   
+
+    
+    
+
+
+
+
+
+
+
+
+    
+
+ 
+
+    
+
+ 
+  
+
+    
+
+    
+
+  
+  
+
+   
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
