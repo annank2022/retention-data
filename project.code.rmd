@@ -1,0 +1,307 @@
+---
+title: "Final project:STAT601 Q1"
+author: "Kenneth Annan"
+date: "12/04/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=F,warning=F,echo=F,fig_height=10,fig_width=7,cache = F)
+```
+
+ **Question 1**
+ 
+ **Introduction**
+ 
+This study seeks to  investigate the use of Microtus subterraneus and M. multiplex that are considered to be two distinct species (Niethammer, 1982; Krapp, 1982), contrary to the older view of Ellerman & Morrison-Scott (1951). The two species differ in the number of chromosomes: 2n=52 or 54 for M. subterraneus, and 2n=46 or 48 for M. multiplex. No reliable criteria based on cranial morphology have been found to distinguish the two species.That is, the objective is to analyze this effect using 1) fitting a glm model using the 89 specimens; 2) to predict the group membership of the remaining 199 specimen’s using the best fitted model; and 3) to explain the  analysis of the dataset and draw recommendations on the usefulness of the predictions.
+ 
+ 
+**Data and methodology**
+
+The study employs the *microtus* data located in the *Flury* library in R.The original data set contains 9 variables and 288 observations.However,the present study was initiated by a data collection consisting of eight morphometric variables (M1Left, M2Left, M3Left, Foramen, Pbone, Length, Height, Rostrum) measured by one of the authors (Salvioni) using a Nikon measure-scope (accuracy 1/1000 mm) and dial calipers (accuracy 1/100 mm). The sample consists of 288 specimens collected mostly in Central Europe (Alps and Jura mountains) and in Toscana. The dataset has the chromosomes of 89 specimens analyzed to identify the species. The remaining 199 of the specimens are unknown but their characteristics are available.
+
+
+In order to develop a model from the 89 specimens that I can use to predict the group membership of the remaining 199 specimen’s,I subset the *microtus* dataset for the 89 specimens(known data, and name it *data1*).The *data1* dataset is made up of 43 known Microtus multiplex and 46 known Microtus subterraneus. I then subset the data for the remaining 199 specimen’s(unknown data, and name it *data2*).The goal for this step is to develop a model that suits the known dataset and use it to predict the unknown chromosomes of the 199 specimens.
+
+Also, I explored the data by finding the correlation of the known dataset(*data1*) by using *cor* and *ggpairs* command in R.I also used the *aggregate function* in R to find the mean of the known dataset(the multiplex and the subterraneus) and the unknown dataset.
+
+
+In other to fit a glm model, I created a binary response variable *Group* that takes a value  of 1 and 0 for M.multiplex and M.subterraneus, respectively.The intuition is that for any glm model(logistic regression model),the dependent variable should be binary.
+
+Following *HSAUR3: A Handbook of Statistical Analyses Using R*, I fit two glm models.I used the glm command in R to fit the models.I used the regsubsets command in R that I learned in my time series class to check on the best variables to include in the model. The summary of the regsubsets command shows that the variables that are highly needed in the model are M1Left, Foramen and Rostrum.
+I first fit a glm_model_1(model 1) for the predictors(M1Left, Foramen and Rostrum), a second model named 
+glm_model_2(model 2) for the predictors(M1Left, Foramen) using the results from the regsubsets.To make a make a recommendation on the best model,I compared the the 10 fold cross validation and with a seed set at 100, Error rates and the accuracy rate from both models.With the fitted models, I predicted the known chromosomes to compare to what was initially collected by Salvioni. I used the best model (model2) to predict the rest of the remaining 199 species.Again, I used the model best fitted model to predict the chromosomes of the rest of the 199 specimens. I used the head command in R to show the first 8 rows of the predicted chromosomes.I used the *write.csv* command in R save the 199 predicted specimens as a csv file.
+
+
+
+
+**Discussion of results **
+Table 1 shows the results of the correlation coefficients of the known dataset. Table 1 also shows the characteristics of the specimens.It can be seen that some of the variables are highly correlated with a correlation coefficient  greater than 0.8.Also, Figure 1 shows the visual display of the results in Table 1.The graph looks at the correlation of the variables in the Microtus multiplex and the the Microtus subterraneus. There is high correlation for Condylo incisive length or skull length and Skull width across rostrum, Width of upper left molar and Skull width across rostrum, and Width of upper left molar 3 and Condylo incisive length or skull length. The highest correlation is 0.88, I see it to be not reasonable to include both skull length and Rostrum in same model since their correlation coefficients is approximately 0.90.Table 2 shows the means of the measurement of their cranial morphology. The results show that the means of the Microtus subterraneus are smaller in all measurements than the Microtus multiplex.
+
+Table 3 shows the variable selection method for using the regsubsets command in R.Table 3 serves as the benchmark for using model 1 and 2.The summary for model 1 and 2 are shown in Tables 4a and 4b. 
+
+Table 5 shows the model selection method using the K fold cross validation at seed of 100,accuracy rate and AIC and the error rate.All the four measures of the model selection methods shows that model 2 is the best model-see Table 5.Thus, using the Cross Validation to predict the accuracy of your model,model 2 has approximately 95.5% accuracy while model 1 has approximately 94.4% accuracy as shown in Table 5.Again, Table 5 shows that model 2 is the  best model  because  model has the lowest error rate.This shows that the model is preferable in predicting the unknown chromosomes of the dataset. Following the ongoing discussion,I estimated the best model as $$\widehat{\mathbf{Group}}=-62.8044523+0.0472459M1Left-0.0066369Foramen ....................(1)$$
+
+
+The summary of the best model (model 2) shows that all the variables are statistically significant at the 5% predefined alpha level. It can also be seen that the M1Left can positively tell the difference in the two species while the Foramen negatively tell the difference of the group-see Table 4b and equation (1).
+
+8 rows of the predicted chromosomes are shown in Table 6.The entire dataset of the 199 predicted chromosomes will be attached as a csv file along with my submission as required.
+I predicted 121 M. multiples and 78 microtus subterraneus as shown in Table 7.I also found the means of the predicted chromosomes (variables) and the result also shows that the means of the measurement of their cranial morphology of  Microtus subterraneus is smaller in all measurements than the Microtus multiplex.
+
+ 
+**Conclusion **
+The best fitted model that is model 2 indicate that M1Left(Foramen) positively (negatively) affect the difference in the two species significantly.The prediction I made is significant enough to be used for future study.Thus, the accuracy rate of the best model fitted is high enough to measure this impact.Also, finding the M1Left and the foramen is enough to predict the chromosome of the species.The only concern about the study is that the sample size of the known dataset(*data1*) is too small for predicting the unknown dataset(*data2*).
+
+
+
+
+**References **
+
+1.Niethammer, L. (1982). The Follower Factory: Denazification using Bavaria as an example . Dietz.
+2.Krapp-Schickel, G. (1982). Family Amphilochidae. The Amphipoda of the Mediterranean, Part, 1, 70-83.
+3.Ellerman, J. R., & Morrison-Scott, T. C. S. (1951). Checklist of Palaearctic and Indian mammals, 1758-1946 (Vol. 3). order of the Trustees of the British Museum.
+4. Hothorn, T., Everitt, B. S., Data II, C. A. L., Scaling, C. M., & Partitioning, C. R. (2017). HSAUR3: A Handbook of Statistical Analyses Using R.
+
+
+
+
+
+
+
+
+
+```{r}
+# loads the data
+#library(Flury)
+library(readr)
+microtus <- read_csv("C:/Users/annan/Downloads/projectkenl.csv")
+
+
+```
+
+
+```{r}
+## subsetting the data into known and unknown specimens
+data1 = microtus[1:89,]## known
+
+data2 = microtus[90:288,]## unknown
+
+```
+
+
+
+
+
+
+
+
+```{r}
+##Exploring the data
+
+#data1$Group <- ifelse(data1$Group =="multiplex", 1, 0)
+library(Hmisc)
+kl=round(cor(data1[,-c(1)]), 4)## correlation of the known dataset
+knitr:: kable(kl,caption = "Table 1:correlation of the known dataset")
+
+#means of the groups
+aa=aggregate(microtus,list(microtus$Group),FUN = mean)
+bb=(aa[,-2])
+
+is.num <- sapply(bb, is.numeric)
+bb[is.num] <- lapply(bb[is.num], round, 1) ##rounding means to 1.d.p
+knitr::kable(bb,caption = "Table 2:Means of the groups")
+
+
+
+library(ggplot2)
+library(GGally)
+ggpairs(data1[,-c(1,2)], alpha = 0.6,title = "Figure 1: correlation of the known dataset")
+
+pairs(data1[,-c(1,2)], alpha = 0.5,title = "Figure 1: correlation of the known dataset")
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+#step_known <- step(glm(Group ~., data = data1, family = "binomial"), direction="backward")
+
+data1$Group <- ifelse(data1$Group =="multiplex", 1, 0)## binary values
+library(leaps) #functions for model selection
+subset <- regsubsets(Group ~ ., data1) #model selection 
+tp=summary(subset)
+
+subset1 <- summary(subset)
+kkp=as.data.frame(subset1$outmat)
+knitr::kable(kkp,caption = "Table 3:Variable selection method")
+
+
+glm_model_1 <- glm(Group ~ M1Left + Foramen+Rostrum  , data=data1, family = binomial())
+v1=summary(glm_model_1)
+v21=summary(glm_model_1)$coefficients
+knitr::kable(v21,caption = "Table 4a:summary of model 1 (not the best model)")
+
+
+glm_model_2 <- glm(Group ~ M1Left +Foramen, data=data1, family = binomial())
+v2=summary(glm_model_2)
+v22=summary(glm_model_2)$coefficients
+knitr::kable(v22,caption = "Table 4b:summary of the best model")
+
+```
+
+
+
+
+
+
+```{r}
+
+layout(matrix(1:3, nrow = 1))
+boxplot(microtus$M1Left ~ microtus$Group,xlab = "Group",ylab = "M1Left" ,
+        main = 'M1Left Vs Group',col="skyblue")
+
+boxplot(microtus$Foramen ~ microtus$Group,xlab = "Group",ylab = "Foramen" , 
+        main = 'Foramen Vs Group',col="skyblue")
+boxplot(microtus$Rostrum~ microtus$Group,xlab = "Group",ylab = "Rostrum" , 
+        main = 'Rostrum Vs Group',col="skyblue")
+
+
+```
+
+
+
+
+```{r}
+## k-fold cross validation
+library(boot)
+set.seed(100)
+#CV <- cv.glm(data,model, K = 10)$delta[1];CV
+CV1 <- cv.glm(data1,glm_model_1, K = 10)$delta[1]
+CV2 <- cv.glm(data1,glm_model_2, K = 10)$delta[1]
+#CV <- cv.glm(data1,glm_model_3, K = 10)$delta[1];CV
+
+
+```
+
+
+
+
+
+
+
+
+```{r}
+
+#AIC
+AIC1=AIC(glm_model_1)
+AIC2=AIC(glm_model_2)
+#Error rate for model 1
+glm_pred_1 = predict(glm_model_1, type="response")
+New_Group_1 = ifelse(glm_pred_1 >= 0.5, "multiplex" ,"subterraneus")
+
+
+error.table = table(New_Group_1, True=data1$Group)
+T1=error.table
+
+###Accuracy
+acc.rate = (error.table[1,1] + error.table[2,2])/sum(error.table)
+po1=acc.rate
+error.rate = 1 - (error.table[1,1] + error.table[2,2]) / sum(error.table)
+po2=error.rate
+
+#Error rate for model 2
+glm_pred_2 = predict(glm_model_2, type="response")
+New_Group_2 = ifelse(glm_pred_2 >= 0.5, "multiplex" ,"subterraneus")
+
+
+error.table_2 = table(New_Group_2, True=data1$Group)
+T2=error.table_2
+
+###Accuracy
+acc.rate_2 = (error.table_2[1,1] + error.table_2[2,2])/sum(error.table_2)
+poo=acc.rate_2
+error.rate.2 = 1 - (error.table_2[1,1] + error.table_2[2,2]) / sum(error.table_2)
+po=error.rate.2
+
+#new1=append(CV1,acc.rate,error.rate)
+
+new2=data.frame(AIC1,CV1,acc.rate,error.rate)
+names(new2)=c("AIC,CV,accuracy,error rate")
+new3=data.frame(AIC2,CV2,acc.rate_2,error.rate.2)
+names(new3)=c("AIC,CV,accuracy,error rate")
+#new4=append(CV2,acc.rate_2,error.rate.2)
+
+
+
+
+klw=rbind(new2,new3)
+names(klw)=c("AIC","CV" ,"accuracy", "error rate")
+
+m=data.frame(c("model1","model2"))
+
+kpp=data.frame(m,klw)
+names(kpp)=c("model","AIC","CV" ,"error.rate","accuracy" )
+knitr::kable(kpp,caption = "Table 5:Model selection measures")
+
+
+
+```
+
+
+
+
+```{r}
+## using the best fitted model to predict the chromosomes of the rest of the 199 specimens
+
+prediction_new = predict(glm_model_2, type="response", newdata = data2)
+Group_new = ifelse(prediction_new >= 0.5, "multiplex" ,"subterraneus")
+
+pred.Results = cbind(Group_new, data2)
+pp=pred.Results[,-2]## delete the second column(unknown)
+plkm=head(pp,n=8)
+knitr::kable(plkm,caption ="Table 6: First 8 rows of the predictions for the unclassified observations" )
+write.csv(pp, "new.pred.csv")
+l=subset(pp,pp$Group_new=="multiplex")
+ll=subset(pp,pp$Group_new=="subterraneus")
+n=nrow(data.frame(l))
+nn=nrow(data.frame(ll)) 
+
+ken2=rbind.data.frame(n,nn)
+ken3=data.frame(c("multiplex","subterraneus"))
+ken4=data.frame(ken3,ken2)
+names(ken4)=c("chromosomes","observations")
+knitr::kable(ken4,caption ="Table 7: Number of obervatuons of the predicted the chromosomes" )
+
+```
+
+
+
+```{r}
+aaa=aggregate(pp,list(pp$Group_new),FUN = mean)[,-2]
+#bb=aa[,-2]
+is.num <- sapply(aaa, is.numeric)
+aaa[is.num] <- lapply(aaa[is.num], round, 1) ##rounding means to 1.d.p
+knitr::kable(aaa,caption = "Table 8: means of the rest of the 199 predicted specimens")
+
+
+
+```
+
+
+
+**References **
+
+1.Niethammer, L. (1982). The Follower Factory: Denazification using Bavaria as an example . Dietz.
+2.Krapp-Schickel, G. (1982). Family Amphilochidae. The Amphipoda of the Mediterranean, Part, 1, 70-83.
+3.Ellerman, J. R., & Morrison-Scott, T. C. S. (1951). Checklist of Palaearctic and Indian mammals, 1758-1946 (Vol. 3). order of the Trustees of the British Museum.
+4. Hothorn, T., Everitt, B. S., Data II, C. A. L., Scaling, C. M., & Partitioning, C. R. (2017). HSAUR3: A Handbook of Statistical Analyses Using R.
+
+
