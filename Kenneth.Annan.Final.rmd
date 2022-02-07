@@ -1,0 +1,434 @@
+---
+title: "Final Project"
+author: "Kenneth Annan"
+date:   "August 7, 2020"
+
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=F,warning=F,echo=F,fig_height=5,fig_width=4,cache = F)
+knitr::opts_chunk$set(fig.pos = "!h", out.extra = "")
+```
+
+
+
+
+```{r}
+## Library
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+library(hrbrthemes)
+library(corrplot)
+library(class)
+library(caret)
+library(rpart)
+library(maptree)
+#library(pca3d)
+library(MASS)
+library(tibble)
+library(randomForest)
+library(e1071)
+library(kernlab)
+library(kableExtra)
+library(gridExtra)
+library(reshape)
+library(GGally)
+library(readr)
+library(readxl)
+library(float)
+
+theme_set(theme_light())
+```
+
+
+INTRODUCTION
+
+In this project, I tend to advice the farmer on the optimal number of grid cells and then compute a yield estimate for each cell. The data for the project includes samples for the field for the years 2013, 2015, 2016, 2017 and 2018. There are four main variables in each year. However, the Timestamp Column will help me decide on the number of data set to use. I found the Timestamp harvest interval to be less than 1-week (7 days) after screening the data, thus, I will use all the five data set for my analysis. The variables that my analysis will focus are Latitude, Longitude and Yield. I will then merge the data by grid cell and compute a normalized yield estimate and standard deviation for each cell across years. Lastly, I will use these estimates to classify cells as having High, Average or Low yields; and as having Stable, Average or Unstable yields. I finally plot my outcome or results based on the classification of the yields of the normalized mean and the normalised Standard deviation.
+
+
+METHODOLOGY
+
+# Step 1
+
+Each step that I will take to achieve this task  will be documented.
+I load the five data files into R.
+
+```{r,echo = FALSE}
+#Loading the files into R for the analysis.
+
+library(dplyr)
+
+setwd ("C:/Users/toshiba/Desktop/summer 2020/Stat 600/")
+home_2013 = read.csv("home.2013.csv", header=TRUE, sep=",")
+home_2015 = read.csv("home.2015.csv", header=TRUE, sep=",")
+home_2016 = read.csv("home.2016.csv", header=TRUE, sep=",")
+home_2017 = read.csv("home.2017.csv", header=TRUE, sep=",")
+home_2018 = read.csv("home.2018.csv", header=TRUE, sep=",")
+ 
+dim(home_2013)
+dim(home_2015)
+dim(home_2016)
+dim(home_2017)
+dim(home_2018)
+
+#summary(home_2013)
+#summary(home_2015)
+#summary(home_2016)
+#summary(home_2017)
+#summary(home_2018)
+setwd("C:\\Users\\toshiba\\Downloads\\Final Project\\Final Project")
+
+home_2013=read.csv("A 2017 Soybeans Harvest.csv")## soybean harvest 2017
+home_2015=read.csv("A 2018 Corn Harvest.csv")## corn harvest 2018
+home_2016=read.csv("A 2019 Soybeans Harvest.csv")## soybean harvest 2019
+home_2017=read.csv("A 2020 Corn Harvest.csv")## corn harvest 2020
+home_2018=read.csv("A 2018 Corn Seeding.csv")## Corn Seeding 2018
+
+#summary(home_2013)
+#summary(home_2015)
+#summary(home_2016)
+#summary(home_2017)
+#summary(home_2018)
+
+home_2013q=subset(home_2013,home_2013$Latitude!=0)
+
+
+summary.stats <- round(as.data.frame((home_2013)%>%psych::describe())
+                       %>%dplyr::select(n,mean, sd, median, min, max, range, se), 1)
+kable(summary.stats, 
+      caption="Statistical distribution of features of dry beans varieties (in pixels) - Label", format = "pandoc")%>%kable_styling(latex_option=c("hold_position"), full_width = F)
+
+
+```
+
+
+
+# Step 2
+
+
+For step 2, I want to determine the number of data set to use in this study. I screen the five data set to determine if the data were uniformly sampled before I plan to merge it. I screen the data by using the interval command to help calculate  the time difference between the first and last time for the harvest (the difference in days from the earliest time stamp to the latest time stamp)
+
+```{r, warning=FALSE}
+library(lubridate)
+
+#Using a function to calculate the time difference between the first and last time for the harvest.
+harvest_range = function(data) {
+N = length(data) #calculating the number of rows
+harvest_diff = interval(data[N], data[1]) #This is to find the time difference of the harvest
+return(harvest_diff)
+}
+k = harvest_range(home_2013$TimeStamp)
+b = harvest_range(home_2015$TimeStamp)
+c = harvest_range(home_2016$TimeStamp)
+d = harvest_range(home_2017$TimeStamp)
+e = harvest_range(home_2018$TimeStamp)
+
+n=as.period(k, unit = "days") # converting into day/hours/mins/seconds
+n1=as.period(b, unit = "days")
+n2=as.period(c, unit = "days")
+n3=as.period(d, unit = "days")
+n4=as.period(e, unit = "days")
+```
+
+
+
+Step 2 results.
+
+The results from step indicate that the harvest interval is less than 7 days for all the five years. The 2016 data set has the higest harvest time interval and the 2017 data set has the least harvest time interval. On this premises, I will use all the five data set for my analysis since the harvest time interval is less than 1-week (7 days) after screening the data for all the five years.
+
+
+
+# Step 3
+
+For step 3,I divide the field into grid cells with 20 rows for the Latitude and 6 columns for the Longitude with grid cells that are 100m wide and 20m long making a total of 120 rows in total.
+
+
+```{r}
+# naming the grid cells
+
+# I determine row and column width and  then create a varible to identify rows, columns and grid cells.
+
+
+f <- function(data){
+  #Variable to identify rows
+row_width <- max(data$Latitude)/20 
+#row_width <- 50 
+data$row_Name <- (ceiling(data$Latitude/row_width))
+
+#Variable to identify columns
+column_width <- max(data$Longitude)/6
+#column_width <- 50
+data$column_Name <- ceiling(data$Longitude/column_width)
+
+#Variable to identify grid cells
+data$cell_Name <- paste(data$row_Name,'-',data$column_Name)
+return(data)
+}
+NEW_2013=f(home_2013q)
+NEW_2015=f(home_2015)
+NEW_2016=f(home_2016)
+NEW_2017=f(home_2017)
+#NEW_2018=f(home_2018)
+#summary(NEW_2013$row_Name)
+#summary(NEW_2013$column_Name)
+#max(NEW_2013$Longitude)
+```
+
+
+# step 4
+
+In this step, I calculate the grid cell means using the aggregaye function. The aggregation is done by the grid cell name with the function mean.
+
+```{r}
+
+# A functuin to calculate grid cell means.
+
+ppp=function(dat){
+  
+l=aggregate(Yield~cell_Name,data=dat,FUN = mean) #aggregating grid cell means
+colnames(l)=c("cell_Name","meanYield")
+return(l)
+}
+Y_2013=ppp(NEW_2013)
+Y_2015=ppp(NEW_2015)
+Y_2016=ppp(NEW_2016)
+Y_2017=ppp(NEW_2017)
+#Y_2018=ppp(NEW_2018)
+
+```
+
+step 3 and 4 results
+
+The results in step 3 and 4 give a data set with 120 rows for all the five years (for each of the years)
+
+
+# step 5a
+
+For this step I convert the data to a common scale since there are very different means. I normalize yield using the option 2(the Z score method) and the compare normalization of the grid cell estimates with normalization of the yield sample values. Option 2(the Z score method) follows thw assumption that the data is from a normal distribution and that there is the need to calculate for skewness and kurtosis to check the assumptions.
+
+
+# step 5b
+
+I further calculate the yields of the normalised mean and the standard deviation of the normalised mean
+
+
+```{r}
+
+#Option 2 method of normalization(z score method)
+library(moments)
+# A function to calculate the z score and also check for skewness and kurtosis
+
+step5 = function(vic) {
+u = mean(vic)
+dev = sd(vic)
+Z = (vic-u)/dev # z score formulae
+sk = skewness(Z) # calculating  skewness
+ku = kurtosis(Z) # calculating  kurtosis
+return(list(z_score=Z, skewness=sk, kurtosis=ku))
+}
+
+d = step5(Y_2013$meanYield) # z score value for all the data files
+e = step5(Y_2015$meanYield)
+f = step5(Y_2016$meanYield)
+c = step5(Y_2017$meanYield)
+#g = step5(Y_2018$meanYield)
+
+
+#mm=data.frame(Y_2013$cell_Name,d$z_score,e$z_score,f$z_score,c$z_score,g$z_score)
+mm=data.frame(Y_2013$cell_Name,d$z_score,e$z_score,f$z_score,c$z_score)
+#colnames(mm)=c("cell.name", "2013.nyield", "2015.nyield","2016.nyield","2017.nyield","2018.nyield")
+colnames(mm)=c("cell.name", "2013.nyield", "2015.nyield","2016.nyield","2017.nyield")
+
+# calculate a normalized mean and a standard deviation for all the years
+k=apply(mm[,-1], 1, FUN=mean)  # calculating yileds of the normalised mean
+l=apply(mm[,-1], 1, FUN=sd)    #calculating standard devaition of the normalised mean
+dd = data.frame(cell_Name=mm$cell.name, N_ZMean=k, N_Zsd=l)
+
+```
+
+step 5 results
+
+The results in step five display the normalized grid cell estimates of the yield sample values for all the five data sets. The skewness value for all the five years are close to zero and the kurtosis value for all the years are also close to 3.Thus, checking for skewness and kurtosis of these data, the data is from a normal distribution and that the Z score has no flaw when using it.
+
+The normalized mean and a standard deviation for all the years have 120 rows as required.
+ 
+
+
+
+
+# step 6
+
+ In this step I classify the yields of the normalized mean and the normalised Standard deviation.I classify a yield as classify this as a “High yielding cell” if the mean normalized score for a grid cell is in the largest 25 percent of all cells, “Low yielding” if the mean normalized score is in the smallest 25 percent and “Average yield” Otherwise.
+ 
+I repeat same process for the normalised Standard deviation. But in this this I classify a yield  as  “stable” if the standard deviation of the normalized scores for a grid cell is in the largest 25 percent of all cells, “unstable” it is in the smallest 25 percent and “Average yield” Otherwise.
+
+
+
+```{r}
+# summary of the 
+pl=summary(dd[,-1])
+#A  functon to classify  the yields of the normalized mean and the normalised Standard deviation
+
+classification = function(dmn, dsd, b, v, h, m) {
+q = ifelse(dmn < b, "Low", ifelse(dmn > v, "High", "Average"))
+k = ifelse(dsd < h, "unstable", ifelse(dsd > m, "stable", "Average"))
+return(list(q, k))
+}
+
+a=classification(dd$N_ZMean, dd$N_Zsd, -0.4637, 0.4741, 0.5289, 0.9228)
+
+classifications = data.frame(cell_Name=dd$cell_Name, classMean=a[[1]], ClassSD=a[[2]])
+
+merge_data = function(x,Y) {
+ff = merge(x, classifications, by="cell_Name")
+vv = merge(ff, Y, by="cell_Name")
+kk = merge(vv, dd, by="cell_Name")
+return(kk)
+}
+
+
+```
+
+
+# step 7
+
+In this step I merge all the variables that I have created into one data set just as the original data set to aid me do the plottings(ggplot) with ease.
+
+```{r}
+# A function to merge all the data set and the name it final
+
+qq=merge_data(NEW_2013, Y_2013)
+ak = data.frame(Year=rep(2013, each=21611), qq)
+qr=merge_data(NEW_2015, Y_2015)
+an = data.frame(Year=rep(2015, each=25146), qr)
+qo=merge_data(NEW_2016, Y_2016)
+am = data.frame(Year=rep(2016, each=20835), qo)
+qn=merge_data(NEW_2017,Y_2017)
+ar = data.frame(Year=rep(2017, each=24623), qn)
+#qm=merge_data(NEW_2018,Y_2018)
+#al = data.frame(Year=rep(2018, each=21611), qm)
+
+final= rbind(ak,an,am,ar) # merged data for plotting
+
+```
+
+# step 8
+ In this step I produce a graph to illustrate the classification by normalized mean
+ 
+```{r}
+library(ggplot2)
+ggplot(final, aes(Longitude, Latitude, col=classMean)) + geom_point(size=0.5) + facet_wrap(~Year)+labs(col="Yield")+ggtitle(" classification based on normalized mean")
+
+
+```
+
+step 8 results.
+
+The above graph shows that normalised mean yield for all the years.The plots indicate yield as low , high and average for all the five years.The distingushing factor in the plot is that the 2015 data file has a drinage line as shown from the graph.
+ 
+# step 9
+
+ In this last step,  I produce a graph to illustrate the classification based on standard deviation of normalized means
+ 
+```{r}
+library(ggplot2)
+ggplot(final, aes(Longitude, Latitude, col=ClassSD)) + geom_point(size=0.5) + facet_wrap(~Year)+labs(col="Yield")+ggtitle("classification based on standard deviation of normalized means")
+
+
+```
+
+step 9 results.
+
+The above graph shows the standard deviation of the normalised mean for all the years.The plots indicate yield as stable, unstable and average for all the five years.The distingushing factor in the plot is that the 2015 data file has a drinage line as shown from the graph. 
+
+
+
+
+
+# conclusion
+
+What I have learnt from the project is that the harvest interval for all the years is less than 7 days. An attempt to reduce the constraints to 5 days will limit the data set that needs to use for this project. It can also be seen that since all the data files use the same row identifiers of 120 rows, this makes the plot for all the years to be somewhat the same. Thus, using different optimal number of grid cells will change the results for this project.
+
+Overall, this is a good project that has enable me to leran a lot about the statiscal programming that I have used this semester.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+
+
+
+.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
